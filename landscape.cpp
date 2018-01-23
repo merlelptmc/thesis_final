@@ -23,7 +23,7 @@ int main(){
     }
 
     //Initialization of the system
-    Parameters system(nspins, nsites, 1, temperature);
+    Parameters system(nspins, nsites, ngrad, temperature);
     system.gradient.Construct_simple_gradient(nsites);
     system.network.Fill(basis_network);
     system.neighbors.construction_1D(nsites);    

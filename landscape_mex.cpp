@@ -2,21 +2,6 @@
 #include "mex.h"
 #include "matrix.h"
 
-// int main(){
-//     
-//  
-//     int n=5;
-//     int m=10;
-//     cout << n << "   " << m << endl;
-//     
-//     Gene_network net=Gene_network(n,m);
-//     net.Print();
-//     
-//     
-//     
-// }
-
-
 void mexFunction( int nlhs, mxArray *plhs[],     
                   int nrhs, const mxArray *prhs[] ) { 
     

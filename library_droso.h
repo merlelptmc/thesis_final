@@ -97,12 +97,12 @@ struct Spins{
     void Print();
     void Switch_one(double *heff, double T, int nuc);
     void Switch_mean(double *heff, double T);
+    void Calculate_heff_1nuc(double *heff, Parameters &system, int nuc);
     void Calculate_heff(double *heff, Parameters &system);    
     int Test_stability(Spins &spin_mean, double critere);
     double Quality_max();
 };
 
-
 void MFSAexp_asym(Spins &spin, Parameters &system, int n_iterations);
 
-
+void MCMC(Spins &spin, Parameters &system, int n_equilibrium, int n_recording, int step_recording);
