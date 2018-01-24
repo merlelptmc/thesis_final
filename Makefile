@@ -2,7 +2,7 @@
 #To compile landscape, do "make landscape.x"
 #To compile mcmc_output, do "make mcmc_output.x"
 
-CC        = g++
+CC        = g++ -std=c++0x
 SRC_1     = mcmc_output.cpp
 OUT_CPP_1 = mcmc_output.x
 SRC_2     = landscape.cpp

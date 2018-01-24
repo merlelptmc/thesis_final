@@ -1,7 +1,8 @@
 #include"library_droso.h"
+#include<chrono>
 
 int main(){
-        
+    auto begin = chrono::high_resolution_clock::now();
     int nspins = 2;
     int nsites = 100;
     double temperature = 1;
@@ -31,7 +32,7 @@ int main(){
     
     //Creation of output "matrices"
     double *pr_network = (double*)calloc((nspins+ngrad)*nspins*n_points_tot,sizeof(double));
-    double *pr_quality = (double*)calloc((nspins+ngrad)*nspins*n_points_tot,sizeof(double));
+    double *pr_quality = (double*)calloc(n_points_tot,sizeof(double));
     
     //Display informations on the landscape exploration
     cout << "Begining to explore" << endl << "Number of points to calculate = " << n_points_tot << endl << "Number of directions = " << n_directions << endl;
@@ -71,7 +72,8 @@ int main(){
         pr_quality[i] = Q;
         
     }
-    
+    auto end = chrono::high_resolution_clock::now();
+    cout << chrono::duration_cast<chrono::nanoseconds>(end-begin).count()/1000000 << " ms" << endl;
 }
 
 

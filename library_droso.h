@@ -14,8 +14,8 @@ struct Gene_network{
     int nspins;
     int ngrad;
     int nparam;
-    double *J;
-    double *C;
+    double *J; ///< nspins*nspins matrix of interaction coefficients
+    double *C; ///<  
     Gene_network(): nspins(0), ngrad(0), nparam(0), J(0), C(0){}
     Gene_network(int ng, int nm);
     Gene_network(int ng, int nm, double *M);
@@ -28,13 +28,13 @@ struct Gene_network{
 };
 
 struct Spatial_grid{
-    int nsites;
-    int length;
-    int thickness;
-    int nlinks;
-    int *sites;
-    int *index;
-    int *number;
+    int nsites;     ///< number of sites on the lattice
+    int length;     ///< size of the lattice in the x direction
+    int thickness;  ///< size of the lattice in the y direction
+    int nlinks;     ///< total number of links on the lattice
+    int *sites;     ///< sites[i]: index of the second site of the ith link
+    int *index;     ///< index[i]: index of the first link from the ith site
+    int *number;    ///< number[i]: number of neighbors of the ith site (including itself)
     Spatial_grid(): nsites(0), thickness(0), nlinks(0), number(0), index(0), sites(0){}
     ~Spatial_grid();   
     void Init(int L, int l);
@@ -82,8 +82,8 @@ struct Spins{
     int nspins;
     int nsites;
     double *state;
-    double diff_auto;
-    double diff_neigh;        
+    double diff_auto;  ///< multiplicative coefficient for self-interactions (from a site to the same site)
+    double diff_neigh; ///< multiplicative coefficient for interactions between different sites
     Spins(): nspins(0), nsites(0), state(0), diff_auto(0), diff_neigh(0){};    
     Spins(int nsp, int nsi);
     Spins(int nsp, int nsi, double dauto, double dneigh);    

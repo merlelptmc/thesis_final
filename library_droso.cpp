@@ -31,7 +31,7 @@ Gene_network::~Gene_network(){
 
 void Gene_network::Init(int ng, int nm){
         nspins=ng;
-        ngrad=nm;
+        ngrad =nm;
         nparam=nspins*(nspins+ngrad);
         J = (double*)calloc(nparam,sizeof(double));
         C = J +nspins*nspins;
@@ -84,12 +84,12 @@ Spatial_grid::~Spatial_grid(){
 }
 
 void Spatial_grid::Init(int L, int l){
-        length=L;
-        thickness=l;
-        nsites=l*L;
-        nlinks=0;
-        index  = (int*)malloc(nsites * sizeof(int));
-        number = (int*)malloc(nsites * sizeof(int));
+        length    = L;
+        thickness = l;
+        nsites    = l*L;
+        nlinks    = 0;
+        index     = (int*)malloc(nsites * sizeof(int));
+        number    = (int*)malloc(nsites * sizeof(int));
 }
 
 int Spatial_grid::construction_1D(int ns){
@@ -593,7 +593,7 @@ void Spins::Switch_mean(double *heff, double T){
 }  
 
 void Spins::Calculate_heff_1nuc(double *heff, Parameters &system, int nuc){
-        double CH[nsites*nspins]= {0};
+//         double CH[nsites*nspins]= {0};
         for(int j = 0; j<nspins; j++){
                 heff[j]=0;
                 for(int k = 0; k< system.ngrad; k++){
@@ -625,7 +625,7 @@ void Spins::Calculate_heff_1nuc(double *heff, Parameters &system, int nuc){
 }
 
 void Spins::Calculate_heff(double *heff, Parameters &system){
-        double CH[nsites*nspins]= {0};
+//         double CH[nsites*nspins]= {0};
         for(int i = 0; i<nsites; i++){
                 for(int j = 0; j<nspins; j++){
                         heff[i*nspins+j]=0;
