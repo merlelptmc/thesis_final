@@ -724,7 +724,7 @@ void MFSAexp_asym_rec(Spins & spin, Parameters &system, int n_iterations, double
                 if(i > 19*n_iterations/20){
                         spin_mean.Add(spin);
                 }
-                //                 copy(spin.state, spin_rec+ i*spin.nspins*spin.nsites, spin.nspins*spin.nsites);
+//                 copy(spin.state, spin_rec+ i*spin.nspins*spin.nsites, spin.nspins*spin.nsites);
         }
         
         for(int i=0; i<spin.nspins*spin.nsites; i++){

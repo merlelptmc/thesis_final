@@ -1,6 +1,6 @@
 #include "mex.h"
 #include "matrix.h"
-#include "library_droso.h"
+#include "/users/invites/merle/laura/library_droso.h"
 
 // to use as [spin_eq, spin_rec, quality] = mfsa_out_MEX(nspins,nsites,temperature, network, [da dn], n_iterations);
 
@@ -25,7 +25,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
     double temperature = pr_in[0];
     pr_in =mxGetPr(prhs[4]);
     int n_iterations = pr_in[0];
-//     cout << n_iterations << endl;
     int ngrad=1;
     
     Parameters system(nspins, nsites, 1, temperature);
@@ -51,8 +50,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
     plhs[2] = mxCreateDoubleMatrix(1,1, mxREAL);
     double *pr_quality = mxGetPr(plhs[2]);
     
-    spin.Fill_rand();
     MFSAexp_asym_rec(spin, system, n_iterations, pr_record);
+//     spin.Print();
     copy(spin.state, pr_spin_out, nspins*nsites);
     pr_quality[0] = spin.Quality_max();
     

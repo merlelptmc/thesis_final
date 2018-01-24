@@ -1,6 +1,6 @@
-#include"library_droso.h"
 #include "mex.h"
 #include "matrix.h"
+#include "/users/invites/merle/laura/library_droso.h"
 
 // to use as [spin_eq, spin_rec, quality] = 
 //                     mcmc_out_MEX(nspins,nsites,temperature, network, [n_eq n_rec step_rec ],  spin_ini);
@@ -36,7 +36,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         system.network.Fill(mxGetPr(prhs[3]));
         system.neighbors.construction_1D(nsites);    
         Spins spin(nspins, nsites);
-        spin.Fill(mxGetPr(prhs[6]));
+        spin.Fill(mxGetPr(prhs[5]));
         
         system.Print_conditions();
         spin.Print();        

@@ -22,7 +22,7 @@ $(OUT_CPP_2): $(OBJECTS) $(SRC_2) $(SOURCES)
 	$(CC) $(SRC_2) $(OBJECTS) -o $(OUT_CPP_2)
 
 $(OUT_CPP_3): $(OBJECTS) $(SRC_3) $(SOURCES)
-	$(CC) $(SRC_1) $(OBJECTS) -o $(OUT_CPP_3)
+	$(CC) $(SRC_3) $(OBJECTS) -o $(OUT_CPP_3)
 	
 # compilation of the libraries
 $%.o : $%.cpp

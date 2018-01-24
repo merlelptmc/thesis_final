@@ -22,7 +22,6 @@ int main(){
         double *spin_record;
         
         system.Print_conditions();
-
         
         MFSAexp_asym_rec(spin, system, n_iterations, spin_record);
         double quality = spin.Quality_max();
