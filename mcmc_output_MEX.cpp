@@ -3,7 +3,7 @@
 #include "matrix.h"
 
 // to use as [spin_eq, spin_rec, quality] = 
-//                     mcmc_out_MEX(nspins,nsites,temperature, network, [da dn], [n_eq n_rec step_rec ],  spin_ini);
+//                     mcmc_out_MEX(nspins,nsites,temperature, network, [n_eq n_rec step_rec ],  spin_ini);
 
 void mexFunction( int nlhs, mxArray *plhs[],     
                   int nrhs, const mxArray *prhs[] ) { 
@@ -12,9 +12,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
         //     prhs[1] = nsites
         //     prhs[2] = temperature
         //     prhs[3] = genetic network
-        //     prhs[4] = [diffusion_auto diffusion_neighbors]
-        //     prhs[5] = [n_equilibration n_recording step_rec]
-        //     prhs[6] = spin_initial
+        //     prhs[4] = [n_equilibration n_recording step_rec]
+        //     prhs[5] = spin_initial
         
         //     plhs[0] = equilibrium state
         //     plhs[1] = recording
@@ -27,9 +26,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
         pr_in =mxGetPr(prhs[2]);
         double temperature = pr_in[0];
         pr_in =mxGetPr(prhs[4]);
-        double dauto = pr_in[0];
-        double dneig = pr_in[1];
-        pr_in =mxGetPr(prhs[5]);
         int n_eq = pr_in[0];
         int n_rec = pr_in[1];
         int step_rec = pr_in[2];
@@ -39,7 +35,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         system.gradient.Construct_simple_gradient(nsites);
         system.network.Fill(mxGetPr(prhs[3]));
         system.neighbors.construction_1D(nsites);    
-        Spins spin(nspins, nsites, dauto, dneig);
+        Spins spin(nspins, nsites);
         spin.Fill(mxGetPr(prhs[6]));
         
         system.Print_conditions();

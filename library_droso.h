@@ -83,16 +83,12 @@ struct Parameters{
 struct Spins{
     int nspins;
     int nsites;
-    double *state;
-    double diff_auto;
-    double diff_neigh;        
-    Spins(): nspins(0), nsites(0), state(0), diff_auto(0), diff_neigh(0){};    
+    double *state;       
+    Spins(): nspins(0), nsites(0), state(0){};    
     Spins(int nsp, int nsi);
-    Spins(int nsp, int nsi, double dauto, double dneigh);    
     Spins(int nsp, int nsites, double *data);
     ~Spins();
     void Init(int nsp, int nsi);
-    void Fill_diffusion(double da, double dn);
     void Fill(double *data);
     void Fill_rand();    
     int Add(Spins &spin_2);

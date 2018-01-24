@@ -11,8 +11,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 //     prhs[1] = nsites
 //     prhs[2] = temperature
 //     prhs[3] = genetic network
-//     prhs[4] = [diffusion_auto diffusion_neighbors]
-//     prhs[5] = n_iterations dans mfsa 
+//     prhs[4] = n_iterations dans mfsa 
     
 //     plhs[0] = equilibrium state
 //     plhs[1] = recording
@@ -25,9 +24,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
     pr_in =mxGetPr(prhs[2]);
     double temperature = pr_in[0];
     pr_in =mxGetPr(prhs[4]);
-    double dauto = pr_in[0];
-    double dneig = pr_in[1];
-    pr_in =mxGetPr(prhs[5]);
     int n_iterations = pr_in[0];
 //     cout << n_iterations << endl;
     int ngrad=1;
@@ -36,7 +32,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     system.gradient.Construct_simple_gradient(nsites);
     system.network.Fill(mxGetPr(prhs[3]));
     system.neighbors.construction_1D(nsites);    
-    Spins spin(nspins, nsites, dauto, dneig);
+    Spins spin(nspins, nsites);
         
     system.Print_conditions();
     nlhs = 2;
