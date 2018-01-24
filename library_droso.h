@@ -10,6 +10,8 @@
 using namespace std;
 void Print(double *mat, int nlin, int ncol );
 
+void copy(double *in, double *out, int nelem);
+
 struct Gene_network{
     int nspins;
     int ngrad;
@@ -104,5 +106,7 @@ struct Spins{
 };
 
 void MFSAexp_asym(Spins &spin, Parameters &system, int n_iterations);
+
+void MFSAexp_asym_rec(Spins & spin, Parameters &system, int n_iterations, double *spin_rec);
 
 void MCMC(Spins &spin, Parameters &system, int n_equilibrium, int n_recording, int step_recording);
