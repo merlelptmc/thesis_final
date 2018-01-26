@@ -478,6 +478,15 @@ void Gradient::Construct_simple_gradient(int nsites){
         }
 }
 
+void Gradient::Construct_opp_gradient(int nsites){
+        Init(2,nsites);
+        for(int i=0; i<nsites; i++){
+        values[i*2] = 1- (double)i/((double)nsites-1);
+        values[i*2+1] = (double)i/((double)nsites-1);
+        }
+}
+    
+
 //Functions associated to the structure Parameters
 Parameters::Parameters(int nsp, int nsi, int ngr, double T){
         Init(nsp, nsi, ngr,T);

@@ -9,8 +9,8 @@ SRC_2	  = mfsa_output.cpp
 OUT_CPP_2 = mfsa_output.x
 SRC_3     = landscape.cpp
 OUT_CPP_3 = landscape.x
-SRC_4	  = awalk_mfsa.cpp
-OUT_CPP_4 = awalk_mfsa.x
+SRC_4	  = aleawalk_mfsa_bounded.cpp
+OUT_CPP_4 = aleawalk_mfsa_bounded.x
 
 SOURCES = library_droso.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
