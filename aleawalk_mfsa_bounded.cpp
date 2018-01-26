@@ -20,7 +20,7 @@ int main(int argc, char *argv[] ){
         double sigma = 0.1;
         double temperature = 0.5;
         int nsites = 100;
-        int n_step = 100000;
+        int n_step = 10000000;
         double n_mfsa=1000;
         double bnd =15;
         double min_bd = -bnd;
@@ -115,7 +115,6 @@ int main(int argc, char *argv[] ){
         double Q = spin.Quality_max();
         over_range = system.network.Check_bounds(min_bd, max_bd);
         clock_t timer = clock();
-        cout << timer << "   " << clock() << endl;
         if(over_range){
                 cout << endl << " Starting point out of range ! stopping now" << endl;
         }
@@ -129,10 +128,8 @@ int main(int argc, char *argv[] ){
                         cout << endl <<"Beneath range and quality sufficient" << endl<< endl;
                         
                         Gene_network net_save(nspins,ngrad,system.network.J);
-                        int k_kept = 0;
-                        int index[n_step];
                         
-                        cout << "Starting the loop " << endl ;
+                        cout << "Starting the loop " << endl << "nstep = " << n_step << endl << endl;
                         for(int i=0; i<n_step; i++){
                                 if( i %(n_step/10) == 0){
                                         cout << "step n " << i << endl;
@@ -153,9 +150,7 @@ int main(int argc, char *argv[] ){
                                 walk <<  Q << endl;
                                 
                                 if( Q > criterion_mn && Q < criterion_mx ){
-                                        index[k_kept] = i;
                                         net_save.Fill(system.network.J);
-                                        k_kept++;
                                 }
                                 else{
                                         system.network.Fill(net_save.J);
@@ -165,10 +160,8 @@ int main(int argc, char *argv[] ){
                 }
         }
         
-        cout << timer << endl;
         timer = clock() -timer;
         double elapsed_secs = double(timer) / CLOCKS_PER_SEC ;
-        cout << endl << clock()  << "   " << timer  << endl << CLOCKS_PER_SEC;
         
         cout << endl << endl <<  "Elapsed time for " << n_step << " points is " << elapsed_secs/60 << "min." << endl << endl<< "End of the program." << endl << endl;
         
