@@ -73,6 +73,15 @@ void Gene_network::Print(){
         }
 }
 
+int Gene_network::Check_bounds(double minim, double maxim){
+        int over = 0;
+        for(int i=0; i<nparam; i++){
+                if( J[i] > maxim || J[i] < minim)
+                        over=1;
+        }
+        return over ;
+}
+
 
 //Functions associated to the structure Spatial_grid
 Spatial_grid::~Spatial_grid(){
@@ -724,7 +733,7 @@ void MFSAexp_asym_rec(Spins & spin, Parameters &system, int n_iterations, double
                 if(i > 19*n_iterations/20){
                         spin_mean.Add(spin);
                 }
-//                 copy(spin.state, spin_rec+ i*spin.nspins*spin.nsites, spin.nspins*spin.nsites);
+                //                 copy(spin.state, spin_rec+ i*spin.nspins*spin.nsites, spin.nspins*spin.nsites);
         }
         
         for(int i=0; i<spin.nspins*spin.nsites; i++){

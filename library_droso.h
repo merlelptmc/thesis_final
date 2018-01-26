@@ -6,6 +6,7 @@
 #include <fstream>
 #include <time.h>
 #include <cstdlib>
+#include <random>
 
 using namespace std;
 void Print(double *mat, int nlin, int ncol );
@@ -26,7 +27,7 @@ struct Gene_network{
     void Init_rand(int ng, int nm, int abs_max);
     void Fill(double *M);
     void Print();
-        
+    int Check_bounds(double minim, double maxim);
 };
 
 struct Spatial_grid{
