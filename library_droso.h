@@ -10,6 +10,8 @@
 using namespace std;
 void Print(double *mat, int nlin, int ncol );
 
+void copy(double *in, double *out, int nelem);
+
 struct Gene_network{
     int nspins;
     int ngrad;
@@ -81,16 +83,12 @@ struct Parameters{
 struct Spins{
     int nspins;
     int nsites;
-    double *state;
-    double diff_auto;  ///< multiplicative coefficient for self-interactions (from a site to the same site)
-    double diff_neigh; ///< multiplicative coefficient for interactions between different sites
-    Spins(): nspins(0), nsites(0), state(0), diff_auto(0), diff_neigh(0){};    
+    double *state;       
+    Spins(): nspins(0), nsites(0), state(0){}; 
     Spins(int nsp, int nsi);
-    Spins(int nsp, int nsi, double dauto, double dneigh);    
     Spins(int nsp, int nsites, double *data);
     ~Spins();
     void Init(int nsp, int nsi);
-    void Fill_diffusion(double da, double dn);
     void Fill(double *data);
     void Fill_rand();    
     int Add(Spins &spin_2);
@@ -104,5 +102,7 @@ struct Spins{
 };
 
 void MFSAexp_asym(Spins &spin, Parameters &system, int n_iterations);
+
+void MFSAexp_asym_rec(Spins & spin, Parameters &system, int n_iterations, double *spin_rec);
 
 void MCMC(Spins &spin, Parameters &system, int n_equilibrium, int n_recording, int step_recording);

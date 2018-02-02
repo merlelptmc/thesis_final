@@ -14,6 +14,11 @@ void Print(double *mat, int nlin, int ncol ){
         cout << endl;
 }
 
+void copy(double *in, double *out, int nelem){
+        for(int i=0; i<nelem; i++){
+                out[i] = in[i];
+        }
+}
 
 //Functions associated to the gene network 
 Gene_network::Gene_network(int ng, int nm){
@@ -501,11 +506,6 @@ Spins::Spins(int nsp, int nsi){
         Init(nsp, nsi);
 }
 
-Spins::Spins(int nsp, int nsi, double dauto, double dneigh){
-        Init(nsp,nsi);
-        Fill_diffusion(dauto, dneigh);
-}
-
 Spins::Spins(int nsp, int nsites, double *data){
         Init(nspins, nsites);
         Fill(data);
@@ -519,13 +519,6 @@ void Spins::Init(int nsp, int nsi){
         nspins = nsp;
         nsites = nsi;
         state = (double*)calloc(nspins*nsites, sizeof(double));
-        diff_auto = 1;
-        diff_neigh = 1;
-}
-
-void Spins::Fill_diffusion(double da, double dn){
-        diff_auto = da;
-        diff_neigh = dn;
 }
 
 void Spins::Fill(double *data){
@@ -570,17 +563,15 @@ void Spins::Print(){
 
 void Spins::Switch_one(double *heff, double T, int nuc){
         double proba[nspins];
-        for(int i=0; i< nspins;i++){
+        for(int i=0; i< nspins; i++){
                 double ex = exp(-heff[i]/T);
                 proba[i] = 1/(1+ex);
-                cout << "proba = " << proba[i] << "   " ;
                 double a =(double)(rand()%1000)/(double)1000;
-                cout << "a= " << a << endl;
                 if(a< proba[i]){
-                        state[i*nsites+nuc]=1;
+                        state[nuc*nspins+i]=1;
                 }
                 else{
-                        state[i*nsites+nuc]=0;
+                        state[nuc*nspins+i]=0;
                 }
         }
 }            
@@ -593,7 +584,6 @@ void Spins::Switch_mean(double *heff, double T){
 }  
 
 void Spins::Calculate_heff_1nuc(double *heff, Parameters &system, int nuc){
-//         double CH[nsites*nspins]= {0};
         for(int j = 0; j<nspins; j++){
                 heff[j]=0;
                 for(int k = 0; k< system.ngrad; k++){
@@ -604,15 +594,8 @@ void Spins::Calculate_heff_1nuc(double *heff, Parameters &system, int nuc){
         double *spin_neigh;
         spin_neigh=(double*)calloc(nspins, sizeof(double));
         for(int j=0; j< system.neighbors.number[nuc]; j++){
-                if(system.neighbors.sites[ system.neighbors.index[nuc] +j] == nuc){
-                        for(int k=0; k< nspins; k++){
-                                spin_neigh[k] += diff_auto*state[nuc*nspins+k];
-                        }
-                }
-                else{
-                        for(int k=0; k< nspins; k++){
-                                spin_neigh[k] += diff_neigh*state[system.neighbors.sites[ system.neighbors.index[nuc] +j]*nspins+k];
-                        }
+                for(int k=0; k< nspins; k++){
+                        spin_neigh[k] += state[system.neighbors.sites[ system.neighbors.index[nuc] +j]*nspins + k];
                 }
         }
         
@@ -639,15 +622,9 @@ void Spins::Calculate_heff(double *heff, Parameters &system){
         spin_neigh=(double*)calloc(nsites*nspins, sizeof(double));
         for(int i=0;i<nsites; i++){
                 for(int j=0; j< system.neighbors.number[i]; j++){
-                        if(system.neighbors.sites[ system.neighbors.index[i] +j] == i){
-                                for(int k=0; k< nspins; k++){
-                                        spin_neigh[i*nspins +k] += diff_auto*state[i*nspins+k];
-                                }
-                        }
-                        else{
-                                for(int k=0; k< nspins; k++){
-                                        spin_neigh[i*nspins +k] += diff_neigh*state[system.neighbors.sites[ system.neighbors.index[i] +j]*nspins+k];
-                                }
+                        
+                        for(int k=0; k< nspins; k++){
+                                spin_neigh[i*nspins +k] += state[system.neighbors.sites[ system.neighbors.index[i] +j]*nspins+k];
                         }
                 }
                 
@@ -730,6 +707,39 @@ void MFSAexp_asym(Spins &spin, Parameters &system, int n_iterations){
         free(heff);
 }
 
+void MFSAexp_asym_rec(Spins & spin, Parameters &system, int n_iterations, double *spin_rec){
+        double Tmin = system.temperature;
+        double T=1000*Tmin;
+        double *heff;
+        heff = (double*)calloc(system.nspins*system.nsites, sizeof(double));
+        double a = pow((1e-3),1./n_iterations); 
+        
+        Spins spin_mean(spin.nspins, spin.nsites);    
+        for(int i=0; i<n_iterations; i++){
+                T *= a;
+                system.temperature =T;
+                spin.Calculate_heff(heff, system);
+                spin.Switch_mean(heff, T);
+                
+                if(i > 19*n_iterations/20){
+                        spin_mean.Add(spin);
+                }
+                //                 copy(spin.state, spin_rec+ i*spin.nspins*spin.nsites, spin.nspins*spin.nsites);
+        }
+        
+        for(int i=0; i<spin.nspins*spin.nsites; i++){
+                spin_mean.state[i] *= 20/(double)n_iterations;
+        }
+        
+        int test = spin.Test_stability(spin_mean, 0.02);
+        if(test ==0){
+                spin.Fill(spin_mean.state);
+        }
+        system.temperature=Tmin;
+        
+        free(heff);
+}
+
 void MCMC(Spins &spin, Parameters &system, int n_equilibrium, int n_recording, int step_recording){
         double T=system.temperature;
         double *heff;
@@ -740,23 +750,17 @@ void MCMC(Spins &spin, Parameters &system, int n_equilibrium, int n_recording, i
         for(int i=0; i< n_equilibrium; i++){
                 nuc = rand()%(spin.nsites);
                 spin.Calculate_heff_1nuc(heff, system, nuc);
-//                 Print(heff,1,spin.nspins);
                 spin.Switch_one(heff, T, nuc);
         }
         
         for(int i=0; i<n_recording*step_recording; i++){
                 nuc = rand()%(spin.nsites); 
-                cout << nuc << endl;
                 spin.Calculate_heff_1nuc(heff, system, nuc);
                 spin.Switch_one(heff, T, nuc);
                 if(i%(step_recording) ==0){
-                        cout << "add spin mean " << endl;
                         spin_mean.Add(spin);
                 }                
         }
-        
-        spin_mean.Print();
-        
         
         for(int i=0; i<spin.nspins*spin.nsites; i++){
                 spin_mean.state[i] = spin_mean.state[i]/(double)n_recording;
