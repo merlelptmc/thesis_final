@@ -1,0 +1,16 @@
+date : 2018-2-5
+system:
+
+nspins = 2
+ngradients = 1
+nsites = 100
+temperature = 1
+
+landscape : 
+calculation : MFSA 
+niterations = 1000
+
+Starting network : 
+5	-2	
+0	5	
+-15	-10	
