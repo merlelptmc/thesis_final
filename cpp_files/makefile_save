@@ -17,6 +17,10 @@ OBJECTS = $(SOURCES:.cpp=.o)
 
 all: $(OUT_CPP_1) $(OUT_CPP_2) $(OUT_CPP_3) $(OUT_CPP_4)
 
+
+%.x: %.cpp
+	$(CC) $< $(OBJECTS) -o $@
+
 $(OUT_CPP_1): $(OBJECTS) $(SRC_1) $(SOURCES)
 	$(CC) $(SRC_1) $(OBJECTS) -o $(OUT_CPP_1)
 
