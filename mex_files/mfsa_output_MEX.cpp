@@ -1,6 +1,6 @@
 #include "mex.h"
 #include "matrix.h"
-#include "/users/invites/merle/laura/library_droso.h"
+#include "/users/invites/merle/thesis_final_folder/cpp_files/library_droso.h"
 
 // to use as [spin_eq, spin_rec, quality] = mfsa_out_MEX(nspins,nsites,temperature, network, [da dn], n_iterations);
 
@@ -33,7 +33,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     system.neighbors.construction_1D(nsites);    
     Spins spin(nspins, nsites);
         
-    system.Print_conditions();
+//     system.Print_conditions();
     nlhs = 2;
     
     plhs[0] = mxCreateDoubleMatrix(nspins,nsites, mxREAL);

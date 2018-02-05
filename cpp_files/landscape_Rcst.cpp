@@ -9,15 +9,18 @@ int main(int argc, char *argv[]){
         
         int nspins = 1;
         int nsites = 100;
-        double temperature = 0.1;
+        double temperature = 0.5;
         int n_mfsa = 1000; //number of iterations in the MFSA
         int ngrad=1;
         double *basis_network = (double*)calloc(nspins*(nspins+ngrad),sizeof(double));
 //         double basis_network[nspins*(nspins+ngrad)] = {0, 0, 0}; //, 5 , -15, -10};
 
+        double R=2.5;
+        double norm=0;
+        
         int n_directions = 2; //number of dimensions we explore
 //         double exploration[n_directions*4] = {1, 2, 3,-10, -10, -10,0.1, 0.1, 0.1, 10,10, 10}; // how we explore: have to change the code in C++ to make this matrix more readable, the first numbers are the index of the parameters we variate, then the begining value for each, the step for each and the ending value for each
-        double exploration[n_directions*4] = {1, 2, -10, -10, 0.01, 0.01,10, 10}; // how we explore: have to change the code in C++ to make this matrix more readable, the first numbers are the index of the parameters we variate, then the begining value for each, the step for each and the ending value for each
+        double exploration[n_directions*4] = {1, 2, -10, -10, 0.1, 0.1, 10, 10}; // how we explore: have to change the code in C++ to make this matrix more readable, the first numbers are the index of the parameters we variate, then the begining value for each, the step for each and the ending value for each
 
         //Calculation of the total number of points to calculate
         int n_points_tot =1;
@@ -123,6 +126,14 @@ int main(int argc, char *argv[]){
                         }
                         
                         system.network.J[ (int)exploration[j]-1 ] = exploration[1*n_directions+j] + i/divid%(modulo)* exploration[2*n_directions+j];
+                }
+                
+                norm=0;
+                for(int j=0; j<system.network.nparam; j++){
+                        norm += abs(system.network.J[j]);
+                }
+                for(int j=0; j<system.network.nparam; j++){
+                        system.network.J[j] *= R/norm;
                 }
                 
                 if(i%(n_points_tot/50) ==0 ){ //regular check out
