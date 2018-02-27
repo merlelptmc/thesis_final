@@ -11,11 +11,13 @@ SRC_3     = landscape.cpp
 OUT_CPP_3 = landscape.x
 SRC_4	  = aleawalk_mfsa_bounded.cpp
 OUT_CPP_4 = aleawalk_mfsa_bounded.x
+SRC_5	  = wang_landau.cpp
+OUT_CPP_5 = wang_landau.x
 
 SOURCES = library_droso.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
-all: $(OUT_CPP_1) $(OUT_CPP_2) $(OUT_CPP_3) $(OUT_CPP_4)
+all: $(OUT_CPP_1) $(OUT_CPP_2) $(OUT_CPP_3) $(OUT_CPP_4) $(OUT_CPP_5)
 
 $(OUT_CPP_1): $(OBJECTS) $(SRC_1) $(SOURCES)
 	$(CC) $(SRC_1) $(OBJECTS) -o $(OUT_CPP_1)
@@ -28,6 +30,9 @@ $(OUT_CPP_3): $(OBJECTS) $(SRC_3) $(SOURCES)
 	
 $(OUT_CPP_4): $(OBJECTS) $(SRC_4) $(SOURCES)
 	$(CC) $(SRC_4) $(OBJECTS) -o $(OUT_CPP_4)
+	
+$(OUT_CPP_5): $(OBJECTS) $(SRC_5) $(SOURCES)
+	$(CC) $(SRC_5) $(OBJECTS) -o $(OUT_CPP_5)
 	
 # compilation of the libraries
 $%.o : $%.cpp

@@ -14,6 +14,17 @@ void Print(double *mat, int nlin, int ncol ){
         }
         cout << endl;
 }
+void Print(int *mat, int nlin, int ncol ){
+        cout << endl;
+        for(int i=0; i<nlin; i++){
+                for (int j=0; j<ncol; j++){
+                        cout <<  mat[j*nlin+i] << "\t" ;
+                }
+                
+                cout << endl;
+        }
+        cout << endl;
+}
 
 void copy(double *in, double *out, int nelem){
         for(int i=0; i<nelem; i++){
