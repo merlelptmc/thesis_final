@@ -1,6 +1,6 @@
 #include "mex.h"
 #include "matrix.h"
-#include "/users/invites/merle/laura/library_droso.h"
+#include "/users/invites/merle/thesis_final_folder/cpp_files/libraries/library_droso.h"
 
 // to use as [spin_eq, spin_rec, quality] = 
 //                     mcmc_out_MEX(nspins,nsites,temperature, network, [n_eq n_rec step_rec ],  spin_ini);

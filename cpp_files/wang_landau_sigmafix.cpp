@@ -1,14 +1,18 @@
 #include"library_droso.h"
 
+bool fexists(const std::string& filename) {
+        ifstream ifile(filename.c_str());
+        return (bool)ifile;
+}
 
-void update_score(double &score, double *histogram, int nbins, double average){
+void update_score(int &score, int *histogram, int nbins, int average){
         score= 0;
-        for(int i=0; i< nbins; i++){
-                if( histogram[i] > average){
+        double average2 = ((double)average)/nbins;
+        for(int i = 0 ; i < nbins; i++){
+                if( histogram[i] > average2){
                         score ++;
                 }
         }
-        score /= nbins;        
 };
 
 void update_sigma(double &sigma, double Qnew){
@@ -19,25 +23,22 @@ void update_sigma(double &sigma, double Qnew){
 
 int main(int argc, char *argv[]){
         
-        int nbins= 500;
+        int nbins= 100;
         double edges[nbins];
         for(int i=0; i< nbins; i++){
                 edges[i] = (double)i/nbins;
         }
         
         //         Print(edges,nbins);
-        double *histogram=(double*)calloc( nbins, sizeof(double));
+        int *histogram=(int*)calloc( nbins, sizeof(int));
         double *log_density=(double*)calloc( nbins, sizeof(double));
-        for(int i=0; i < nbins; i++){
-                log_density[i]=1;
-        }
         double density_new=0;
         double density_old=0;
         double f = exp(1);
         double crit_fmin = pow(10,-5);
-        double average =0;
-        double score=0;
-        double crit_score_flat = 0.6;
+        int average =0;
+        int score=0;
+        double crit_score_flat = 0.8;
         
         //Parameters
         int nspins = 1;
@@ -58,24 +59,25 @@ int main(int argc, char *argv[]){
         system_tested.gradient.Construct_simple_gradient(nsites);
         system_tested.neighbors.construction_1D(nsites);    
         
-        //Initialization random
+        //Initialization random generator
         cout<< "Initiating the normal distribution generator" << endl << endl;
         unsigned int mersenneSeed = rand()%100000;
         mt19937_64 generator; // it doesn't matter if I use the 64 or the std::mt19937
         generator.seed(mersenneSeed);
         normal_distribution<double> normal; // default is 0 mean and 1.0 std;
-        double sigma=5;
+        double sigma=0.5;
         double proba=0; double a=0;
         
         //Calculation of the first point
         MFSAexp_asym(spin, system, n_mfsa); 
         double Qold = spin.Quality_max();
+        double Qnew=0;
         
         int bin = floor(Qold*nbins*2);
         histogram[bin] ++;
         log_density[bin] += log(f);
         
-        average += (double)1/nbins;
+        average ++;
         update_score(score,histogram,nbins, average);
         
         double min_bd = -15;
@@ -83,16 +85,22 @@ int main(int argc, char *argv[]){
         double over_range=0;
         
         //Opening the results file
-        ostringstream prefix, sig, T;
+        ostringstream prefix, sig, T, nb;
         ofstream result, parameters;
-        sig << setprecision(2) << sigma;
-        T << setprecision(2) << temperature;
-        string title = "histogram_" + to_string(nspins) +"s" + to_string(ngrad) + "g_T" + T.str() + "_sigmafix" + sig.str() ;
+        sig << fixed << setprecision(1) << sigma;
+        T << fixed <<  setprecision(1) << temperature;
+        nb << setprecision(0) << nbins;
+        string title = "WL_" + to_string(nspins) +"s" + to_string(ngrad) + "g_T" + T.str()  + "_nbins" + nb.str() + "_sigmafix" + sig.str();
         if( argc > 1){
                 prefix << argv[1];                
                 title = prefix.str() + "_" +  title;
         }
-        result.open(title + ".txt");
+        bool test=fexists(title + "_parameters.txt");
+        if(test){
+                cout << "Please change the name of the output files, a paramters file with the same name already exists." << endl << endl;
+                return 0;
+        }
+        result.open(title + "_histograms.txt");
         parameters.open(title + "_parameters.txt");
         
         
@@ -116,7 +124,7 @@ int main(int argc, char *argv[]){
                 
         }
         cout << "Parameters registered." << endl;
-        
+        parameters.close();
         
         cout << title << endl << endl ; 
         
@@ -127,11 +135,16 @@ int main(int argc, char *argv[]){
                 int k=0;
                 n_loop++;                
                 
-                while(score < crit_score_flat){
+                while(score < crit_score_flat*nbins){
                         
                         k++;
-                        if( k%100 == 0){
+                        if( k%10000 == 0){
                                 cout << "(" << n_loop << ',' << k << ")" << ", average = " << average << ", score = " << score << ", sigma = "<< sigma << endl;
+                                
+//                                 cout << "Histogram";
+//                                 Print(histogram,1,nbins);
+//                                 cout << "Density";
+//                                 Print(log_density,1,nbins);
                         }
                         
                         //Add random values to the actual network parameters
@@ -146,28 +159,36 @@ int main(int argc, char *argv[]){
                         
                         // Calculate Q
                         MFSAexp_asym(spin, system_tested, n_mfsa); 
-                        double Qnew = spin.Quality_max();
+                        Qnew = spin.Quality_max();
                         
-                        bin = floor(Qnew*nbins*2);
+                        system.network.Print();
+                        system_tested.network.Print();
+                        cout << "Q " << Qnew << endl;
+                        
+                        bin = floor(Qnew*nbins*2);      
                         density_new = exp(log_density[bin]);
                         bin = floor(Qold*nbins*2);
                         density_old = exp(log_density[bin]);
+                        cout << "old " << density_old << " new " << density_new ;
                         if (density_old/density_new <1){
                                 proba = density_old/density_new;
                                 a =(double)(rand()%(10^8))/(double)(10^8);
+                                cout << endl << " proba " << proba << " a " << a ;
                                 if( a < proba){
                                         system.network.Fill(system_tested.network.J);
                                         Qold=Qnew;
                                         bin = floor(Qold*nbins*2);
                                         histogram[bin] ++;
                                         log_density[bin] += log(f);
-                                        average += (double)1/nbins;
+                                        average ++;
                                         update_score(score,histogram,nbins, average);
+                                        cout << " taken !" << endl;
                                 }
                                 else{
                                         bin = floor(Qold*nbins*2);
                                         histogram[bin] ++;
                                         log_density[bin] += log(f);
+                                        cout << " left out ! " << endl;
                                         
                                 }
                         }
@@ -177,8 +198,9 @@ int main(int argc, char *argv[]){
                                 bin = floor(Qold*nbins*2);
                                 histogram[bin] ++;
                                 log_density[bin] += log(f);
-                                average += (double)1/nbins;
+                                average ++;
                                 update_score(score,histogram,nbins, average);
+                                cout << " taken !" << endl;
                                 
                         }
                         

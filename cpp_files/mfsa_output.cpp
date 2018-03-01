@@ -3,16 +3,17 @@
 
 int main(){
         
-        int nspins = 2;
+        int nspins = 1;
         int ngrad=1;
-        int nsites = 40;
-        double temperature = 0.5;
+        int nsites = 100;
+        double temperature = 1;
         //     double dauto = 1;
         //     double dneig = 1;
         int n_iterations = 1000;
         
         Parameters system(nspins, nsites, ngrad, temperature);
-        double network[system.network.nparam] = {5, -2.1, 0,6 , -15, -12};
+        double network[system.network.nparam] = {-3.14, -1.87};
+        Print(network, 2,1);
         system.gradient.Construct_simple_gradient(nsites);
         system.network.Fill(network);
         system.neighbors.construction_1D(nsites);    

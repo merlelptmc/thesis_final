@@ -11,10 +11,10 @@ OBJS=$(SRCS:.cpp=.x )
 all: $(OBJECTS) $(OBJS)
 
 %.x: %.cpp
-	$(CC) $< $(OBJECTS) -o $@
+	$(CC) $< $(SOURCES) -o $@
 
 # compilation of the libraries
-$(OBJECTS) : $(SOURCES)
+$(OBJECTS): $(SOURCES)
 	$(CC)  -fpic -c $< -o $@
 
 clean:
