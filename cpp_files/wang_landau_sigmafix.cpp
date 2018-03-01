@@ -17,9 +17,9 @@ void update_sigma(double &sigma, double Qnew){
         
 }
 
-int main(){
+int main(int argc, char *argv[]){
         
-        int nbins= 50;
+        int nbins= 500;
         double edges[nbins];
         for(int i=0; i< nbins; i++){
                 edges[i] = (double)i/nbins;
@@ -34,8 +34,10 @@ int main(){
         double density_new=0;
         double density_old=0;
         double f = exp(1);
+        double crit_fmin = pow(10,-5);
         double average =0;
         double score=0;
+        double crit_score_flat = 0.6;
         
         //Parameters
         int nspins = 1;
@@ -62,7 +64,7 @@ int main(){
         mt19937_64 generator; // it doesn't matter if I use the 64 or the std::mt19937
         generator.seed(mersenneSeed);
         normal_distribution<double> normal; // default is 0 mean and 1.0 std;
-        double sigma=0.1;
+        double sigma=5;
         double proba=0; double a=0;
         
         //Calculation of the first point
@@ -80,21 +82,56 @@ int main(){
         double max_bd = 15;
         double over_range=0;
         
-        ofstream result;
-        result.open("histogram_sigmamax0.5.txt");
+        //Opening the results file
+        ostringstream prefix, sig, T;
+        ofstream result, parameters;
+        sig << setprecision(2) << sigma;
+        T << setprecision(2) << temperature;
+        string title = "histogram_" + to_string(nspins) +"s" + to_string(ngrad) + "g_T" + T.str() + "_sigmafix" + sig.str() ;
+        if( argc > 1){
+                prefix << argv[1];                
+                title = prefix.str() + "_" +  title;
+        }
+        result.open(title + ".txt");
+        parameters.open(title + "_parameters.txt");
+        
+        
+        time_t t = time(0);   // get time now
+        struct tm * now = localtime( & t );
+        stringstream ss;
+        ss << (now->tm_year + 1900) << '-'<< (now->tm_mon + 1) << '-'
+        <<  now->tm_mday  << endl;
+        
+        parameters << "date : " << ss.str() << endl << "system:" << endl;
+        parameters << "nspins = " << nspins << endl << "ngradients = " << ngrad << endl; 
+        parameters << "nsites = " << nsites << endl << "temperature = " << temperature << endl << endl;
+        parameters << "wang-landau : " << endl  << "sigma = " << sigma << endl << "nbins = " << nbins << endl << "flatening critera = "<< crit_score_flat  << endl << "ending critera : f-1 < " << crit_fmin << endl << "boundaries = " << min_bd << " "<< max_bd << endl << endl;
+        parameters << "calculation : MFSA " << endl << "niterations = " << n_mfsa << endl << endl;
+        parameters << "Starting network : " << endl;
+        for(int i=0; i<system.network.nparam; i++){
+                parameters << system.network.J[i] << "\t";
+                if((i+1)%(nspins)==0){ 
+                        parameters << endl;
+                }
+                
+        }
+        cout << "Parameters registered." << endl;
+        
+        
+        cout << title << endl << endl ; 
         
         int n_loop =0;
-        while((f-1) > 10^(-3)){
+        while((f-1) > crit_fmin){
                 
                 cout << setprecision(8) << "f =" << f << endl;
                 int k=0;
                 n_loop++;                
                 
-                while(score < 0.6){
+                while(score < crit_score_flat){
                         
                         k++;
                         if( k%100 == 0){
-                                cout << "k = " << k << ", average = " << average << ", score = " << score << ", sigma = "<< sigma << endl;
+                                cout << "(" << n_loop << ',' << k << ")" << ", average = " << average << ", score = " << score << ", sigma = "<< sigma << endl;
                         }
                         
                         //Add random values to the actual network parameters
@@ -126,7 +163,6 @@ int main(){
                                         log_density[bin] += log(f);
                                         average += (double)1/nbins;
                                         update_score(score,histogram,nbins, average);
-                                        update_sigma(sigma, Qnew);
                                 }
                                 else{
                                         bin = floor(Qold*nbins*2);
@@ -143,7 +179,6 @@ int main(){
                                 log_density[bin] += log(f);
                                 average += (double)1/nbins;
                                 update_score(score,histogram,nbins, average);
-                                
                                 
                         }
                         
