@@ -22,72 +22,72 @@ void update_sigma(double &sigma, double sigma_min, double sigma_max, double Qmax
 
 int main(int argc, char *argv[]){
         
-        int nbins= 100;
-        double edges[nbins];
-        for(int i=0; i< nbins; i++){
-                edges[i] = (double)i/nbins;
-        }
+        // Parameters of the Wang Landau
+        int nbins= 100;        
+        double crit_fmin = 1e-3;
+        double crit_score_flat =0.8;
         
-        //         Print(edges,nbins);
+        // Quantities followed during WL
         int    *histogram   = (int*)   calloc( nbins, sizeof(int));    // set to zero
         double *log_density = (double*)calloc( nbins, sizeof(double)); // set to zero
-        double density_new = 0;
-        double density_old = 0;
+        
+        // Quantities used during WL 
         double lnf = 1;
         double f = exp(lnf);
+        double density_new = 0;
+        double density_old = 0;
+        double Qnew=0;
+        double Qold=0;
+        int bin_old=0;
+        int bin_new=0;
         int average = 0;
         int score   = 0;
-        double crit_fmin = 1e-5;
-        double crit_score_flat =0.6;
+        double proba = 0; 
+        double a = 0;
         
-        //Parameters
-        int nspins = 1;
-        int nsites = 100;
+        //Parameters of th studied system
+        int nspins = 1; // number of genes/spins
+        int nsites = 100; // number of nuclei/sites
         double temperature = 1;
-        int n_mfsa = 1000; //number of iterations in the MFSA
-        int ngrad=1;
-        double basis_network[nspins*(nspins+ngrad)] = {5, -15};
+        int n_mfsa = 1000; //number of iterations in the MFSA algorithm
+        int ngrad=1; // number of maternel gradients if ngrad=2, need to change the graident filling function
+        
+        // Boundaries of the parameters
+        double min_bd = -15;
+        double max_bd = 15;
+        double over_range=0;
         
         //Initialization of the system
         Parameters system(nspins, nsites, ngrad, temperature);
         system.gradient.Construct_simple_gradient(nsites);
-        system.network.Fill(basis_network);
+        system.network.Init_rand(nspins,nsites,max_bd);
         system.neighbors.construction_1D(nsites);    
         Spins spin(nspins, nsites );
         
+        // Initialization of the tested system during a WL step
         Parameters system_tested(nspins,nsites,ngrad,temperature);
         system_tested.gradient.Construct_simple_gradient(nsites);
         system_tested.neighbors.construction_1D(nsites);    
         
-        //Initialization random walk parameters
+        //Initialization of random walk parameters
         cout<< "Initiating the normal distribution generator" << endl << endl;
         unsigned int mersenneSeed = rand()%100000;
         mt19937_64 generator; // it doesn't matter if I use the 64 or the std::mt19937
         generator.seed(mersenneSeed);
         normal_distribution<double> normal; // default is 0 mean and 1.0 std;
-        double sigma = 0.5;
-        double proba = 0; 
-        double a = 0;
+        double sigma = 5;
         
-        //Calculation of the first point
+        //Calculation of the first point and Initializationof histogram and log_density
         MFSAexp_asym(spin, system, n_mfsa); 
-        double Qold = spin.Quality_max();
-        double Qnew=0;
-        cout << Qold << endl;
-        
-        int bin_old = floor(Qold*nbins*2);
+        Qold = spin.Quality_max();
+        bin_old = floor(Qold*nbins*2);
         histogram[bin_old]++;
         log_density[bin_old] += lnf;
-        int bin_new;
         
         average++;
         update_score(score, histogram, nbins, average);
         
-        double min_bd = -15;
-        double max_bd = 15;
-        double over_range=0;
-        
-        //Opening the results file
+        //Filling parameters file and opening the results file
         ostringstream prefix, sig, T, nb;
         ofstream result, parameters;
         sig << fixed << setprecision(1) << sigma;
@@ -103,10 +103,11 @@ int main(int argc, char *argv[]){
                 cout << "Please change the name of the output files, a paramters file with the same name already exists." << endl << endl;
                 return 0;
         }
-        result.open(title + "_histograms.txt");
-        parameters.open(title + "_parameters.txt");
         
-               time_t t = time(0);   // get time now
+        cout << "Prefix is " << title << endl << endl;
+        
+        parameters.open(title + "_parameters.txt");        
+        time_t t = time(0);   // get time now
         struct tm * now = localtime( & t );
         stringstream ss;
         ss << (now->tm_year + 1900) << '-'<< (now->tm_mon + 1) << '-'
@@ -127,9 +128,9 @@ int main(int argc, char *argv[]){
         }
         cout << "Parameters registered." << endl;
         parameters.close();
+        result.open(title + "_histograms.txt");
         
-        int n_loop=0;
-        
+        int n_loop=0;        
         while((f-1) > crit_fmin){
                 
                 n_loop++;
@@ -142,10 +143,10 @@ int main(int argc, char *argv[]){
                         if( k%100 == 0){
                                 cout << "(" << n_loop << ',' << k << ")" << ", average = " << average << ", score = " << score << ", sigma = "<< sigma << endl;
                                 
-//                                 cout << "Histogram";
-//                                 Print(histogram,1,nbins);
-//                                 cout << "Density";
-//                                 Print(log_density,1,nbins);
+                                                                cout << "Histogram";
+                                                                Print(histogram,1,nbins);
+                                                                cout << "Density";
+                                                                Print(log_density,1,nbins);
                         }
                         
                         //Add random values to the actual network parameters
@@ -156,57 +157,37 @@ int main(int argc, char *argv[]){
                                         system_tested.network.J[j] = system.network.J[j] + sigma*normal(generator);
                                 }
                                 over_range = system_tested.network.Check_bounds(min_bd, max_bd);
-                       }
+                        }
                         
                         // Calculate Q
                         MFSAexp_asym(spin, system_tested, n_mfsa); 
                         Qnew = spin.Quality_max();
                         
-//                         system.network.Print();
-//                         system_tested.network.Print();
-//                         cout << "Q " << Qnew << endl;
-                        
                         bin_new = floor(Qnew*nbins*2);
-                        bin_old = floor(Qold*nbins*2);
                         proba   = exp(log_density[bin_old]-log_density[bin_new]);
-//                         cout << "old " << exp(log_density[bin_old]) << " new " << exp(log_density[bin_new]) ;
-
-                        if (proba <1){
-//                           a = drand();                                                          cout << endl << " proba " << proba << " a " << a ;
-
-                          if( a < proba){
-                                  system.network.Fill(system_tested.network.J);
-                                  Qold    = Qnew;
-                                  histogram[bin_new] ++;
-                                  log_density[bin_new] += lnf;
-                                  average ++;
-                                  update_score(score, histogram, nbins, average);
-                                  
-
-                          }
-                          else{
-                                  histogram[bin_old] ++;
-//                                   log_density[bin_old] += lnf;                                        cout << " left out ! " << endl;
-
-                          }
-                        }
-                        else{
+                        
+                        if( drand() < proba){
                                 system.network.Fill(system_tested.network.J);
-                                Qold = Qnew;
-                                histogram[bin_new] ++;
-                                log_density[bin_new] += lnf;
-                                average ++;
-                                update_score(score, histogram, nbins, average); 
+                                bin_old=bin_new;
                         }
+                        
+                        histogram[bin_old] ++;
+                        log_density[bin_old] += lnf; 
+                        average ++;
+                        update_score(score, histogram, nbins, average);
+                        
                         
                 }
+                
                 
                 cout << "Histogram";
                 Print(histogram,1,nbins);
                 cout << "Density";
                 Print(log_density,1,nbins);
                 
-                f = sqrt(f);
+                //                 f = pow(f,0.8);
+                f=sqrt(f);
+                cout << f << endl;
                 lnf = log(f);
                 score   = 0;
                 average = 0;
@@ -214,14 +195,17 @@ int main(int argc, char *argv[]){
                 memset(histogram, 0, nbins*sizeof(int));
                 
                 // Removing the minimum value of log(density) to keep registered values low
-//                 for(int i=0; i< nbins; i++){
-//                         if (log_density[i] < min){
-//                                 min = log_density[i];
-//                         }
-//                 }
-//                 for(int i=0; i<nbins; i++){
-//                         log_density[i] -= min;
-//                 }
+                for(int i=0; i< nbins; i++){
+                        if (log_density[i] < min){
+                                min = log_density[i];
+                        }
+                }
+                for(int i=0; i<nbins; i++){
+                        log_density[i] -= min;
+                }
+                
+                cout << "Density";
+                Print(log_density,1,nbins);
                 
                 result << n_loop << "\t" << setprecision(10) << f << "\t" ;
                 for(int i=0; i<nbins; i++){
@@ -229,10 +213,8 @@ int main(int argc, char *argv[]){
                 }
                 result << endl;                
                 
-        }
-        
-        
-        
+                
+        }                             
         
         return 0;
 }
