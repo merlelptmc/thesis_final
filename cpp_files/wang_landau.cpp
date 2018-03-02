@@ -25,7 +25,7 @@ int main(int argc, char *argv[]){
         // Parameters of the Wang Landau
         int nbins= 100;        
         double crit_fmin = 1e-3;
-        double crit_score_flat =0.8;
+        double crit_score_flat =0.6;
         
         // Quantities followed during WL
         int    *histogram   = (int*)   calloc( nbins, sizeof(int));    // set to zero
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]){
         mt19937_64 generator; // it doesn't matter if I use the 64 or the std::mt19937
         generator.seed(mersenneSeed);
         normal_distribution<double> normal; // default is 0 mean and 1.0 std;
-        double sigma = 5;
+        double sigma = 10;
         
         //Calculation of the first point and Initializationof histogram and log_density
         MFSAexp_asym(spin, system, n_mfsa); 
@@ -131,6 +131,10 @@ int main(int argc, char *argv[]){
         result.open(title + "_histograms.txt");
         
         int n_loop=0;        
+        clock_t timer0 = clock();
+        clock_t timer = timer0;
+        double elapsed_secs;
+        
         while((f-1) > crit_fmin){
                 
                 n_loop++;
@@ -143,10 +147,10 @@ int main(int argc, char *argv[]){
                         if( k%100 == 0){
                                 cout << "(" << n_loop << ',' << k << ")" << ", average = " << average << ", score = " << score << ", sigma = "<< sigma << endl;
                                 
-                                                                cout << "Histogram";
-                                                                Print(histogram,1,nbins);
-                                                                cout << "Density";
-                                                                Print(log_density,1,nbins);
+                        cout << "Histogram";
+                        Print(histogram,1,nbins);
+                        cout << "Density";
+                        Print(log_density,1,nbins);
                         }
                         
                         //Add random values to the actual network parameters
@@ -191,10 +195,10 @@ int main(int argc, char *argv[]){
                 lnf = log(f);
                 score   = 0;
                 average = 0;
-                double min = log_density[0];
                 memset(histogram, 0, nbins*sizeof(int));
                 
                 // Removing the minimum value of log(density) to keep registered values low
+                double min = log_density[0];
                 for(int i=0; i< nbins; i++){
                         if (log_density[i] < min){
                                 min = log_density[i];
@@ -211,10 +215,19 @@ int main(int argc, char *argv[]){
                 for(int i=0; i<nbins; i++){
                         result << log_density[i] << "\t";
                 }
-                result << endl;                
+                result << endl;    
                 
+                timer = clock() -timer;
+                elapsed_secs = double(timer) / CLOCKS_PER_SEC ;
+                cout << endl << endl <<  "Elapsed time for this loop is " << elapsed_secs/60 << "min." << endl;
                 
         }                             
         
+        // Measure execution time
+        clock_t timer_tot = clock() -timer0;
+        elapsed_secs = double(timer_tot) / CLOCKS_PER_SEC ;
+        
+        cout << endl << endl <<  "Elapsed time total is " << elapsed_secs/60 << "min." << endl << "End of the program." << endl << endl;
+
         return 0;
 }
