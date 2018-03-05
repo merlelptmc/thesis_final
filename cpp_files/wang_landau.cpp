@@ -34,6 +34,7 @@ int main(int argc, char *argv[]){
         // Quantities used during WL 
         double lnf = 1;
         double f = exp(lnf);
+        double pow_f= 0.8;
         double density_new = 0;
         double density_old = 0;
         double Qnew=0;
@@ -53,8 +54,8 @@ int main(int argc, char *argv[]){
         int ngrad=1; // number of maternel gradients if ngrad=2, need to change the graident filling function
         
         // Boundaries of the parameters
-        double min_bd = -15;
-        double max_bd = 15;
+        double min_bd = -10;
+        double max_bd = 10;
         double over_range=0;
         
         //Initialization of the system
@@ -75,7 +76,7 @@ int main(int argc, char *argv[]){
         mt19937_64 generator; // it doesn't matter if I use the 64 or the std::mt19937
         generator.seed(mersenneSeed);
         normal_distribution<double> normal; // default is 0 mean and 1.0 std;
-        double sigma = 15;
+        double sigma = 10;
         
         //Calculation of the first point and Initializationof histogram and log_density
         MFSAexp_asym(spin, system, n_mfsa); 
@@ -190,7 +191,7 @@ int main(int argc, char *argv[]){
                 Print(log_density,1,nbins);
                 
                 //                 f = pow(f,0.8);
-                f=pow(f,0.8);
+                f=pow(f, pow_f);
                 cout << f << endl;
                 lnf = log(f);
                 score   = 0;
