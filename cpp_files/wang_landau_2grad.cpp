@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
         double *log_density = (double*)calloc( nbins, sizeof(double)); // set to zero
         
         // Quantities used during WL 
-        double lnf = 1;
+        double lnf = 5;
         double f = exp(lnf);
         double density_new = 0;
         double density_old = 0;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
         int nsites = 100; // number of nuclei/sites
         double temperature = 1;
         int n_mfsa = 1000; //number of iterations in the MFSA algorithm
-        int ngrad=1; // number of maternel gradients if ngrad=2, need to change the graident filling function
+        int ngrad=2; // number of maternel gradients if ngrad=2, need to change the graident filling function
         
         // Boundaries of the parameters
         double min_bd = -15;
@@ -59,14 +59,14 @@ int main(int argc, char *argv[]){
         
         //Initialization of the system
         Parameters system(nspins, nsites, ngrad, temperature);
-        system.gradient.Construct_simple_gradient(nsites);
+        system.gradient.Construct_opp_gradient(nsites);
         system.network.Init_rand(nspins,ngrad,max_bd);
         system.neighbors.construction_1D(nsites);    
         Spins spin(nspins, nsites );
         
         // Initialization of the tested system during a WL step
         Parameters system_tested(nspins,nsites,ngrad,temperature);
-        system_tested.gradient.Construct_simple_gradient(nsites);
+        system_tested.gradient.Construct_opp_gradient(nsites);
         system_tested.neighbors.construction_1D(nsites);    
         
         //Initialization of random walk parameters
@@ -138,7 +138,7 @@ int main(int argc, char *argv[]){
         while((f-1) > crit_fmin){
                 
                 n_loop++;
-                cout << "Iteration " << n_loop << " : " << setprecision(8) << "f =" << f << endl;
+                cout << "Iteration " << n_loop << " : " << setprecision(8) << "f =" << f << "  lnf = " << lnf << endl;
                 int k=0;
                 
                 while(score < crit_score_flat*nbins){
@@ -147,10 +147,10 @@ int main(int argc, char *argv[]){
                         if( k%100 == 0){
                                 cout << "(" << n_loop << ',' << k << ")" << ", average = " << average << ", score = " << score << ", sigma = "<< sigma << endl;
                                 
-                        cout << "Histogram";
-                        Print(histogram,1,nbins);
-                        cout << "Density";
-                        Print(log_density,1,nbins);
+//                         cout << "Histogram";
+//                         Print(histogram,1,nbins);
+//                         cout << "Density";
+//                         Print(log_density,1,nbins);
                         }
                         
                         //Add random values to the actual network parameters
@@ -190,7 +190,7 @@ int main(int argc, char *argv[]){
                 Print(log_density,1,nbins);
                 
                 //                 f = pow(f,0.8);
-                f=pow(f,0.8);
+                f=pow(f,0.66);
                 cout << f << endl;
                 lnf = log(f);
                 score   = 0;
