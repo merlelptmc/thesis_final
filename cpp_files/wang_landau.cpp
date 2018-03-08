@@ -6,14 +6,15 @@ bool fexists(const std::string& filename) {
 }
 
 /// Returns in score the ratio of bins of the histogram where the number is > average
-void update_score(int &score, int *histogram, int nbins, int average){
+void update_score(double  &score, int *histogram, int nbins, int average){
         score= 0;
-        double average2 = ((double)average)/nbins;
-        for(int i = 0 ; i < nbins; i++){
-                if( histogram[i] > average2){
-                        score ++;
+        double min =histogram[0];
+        for(int i = 1 ; i < nbins; i++){
+                if( histogram[i] < min){
+                        min = histogram[i];
                 }
         }
+        score = min/average*nbins;
 };
 
 void update_sigma(double &sigma, double sigma_min, double sigma_max, double Qmax,  double Qnew){
@@ -36,7 +37,7 @@ int main(int argc, char *argv[]){
         // Quantities used during WL 
         double lnf = 1;
         double f = exp(lnf);
-        double pow_f= 0.9;
+        double pow_f= 0.5;
         double density_new = 0;
         double density_old = 0;
         double Qnew=0;
@@ -44,17 +45,17 @@ int main(int argc, char *argv[]){
         int bin_old=0;
         int bin_new=0;
         int average = 0;
-        int score   = 0;
+        double score   = 0;
         double proba = 0;
         double a = 0;
         
         //Parameters of th studied system
-        int nspins = 2; // number of genes/spins
+        int nspins = 1; // number of genes/spins
         int nsites = 100; // number of nuclei/sites
         double temperature = 1;
         int n_mfsa = 1000; //number of iterations in the MFSA algorithm
         int ngrad=1; // number of maternel gradients if ngrad=2, need to change the graident filling function
-        double Qmax=0.75;
+        double Qmax=0.5;
         
         // Boundaries of the parameters
         double min_bd = -10;
@@ -79,7 +80,7 @@ int main(int argc, char *argv[]){
         mt19937_64 generator; // it doesn't matter if I use the 64 or the std::mt19937
         generator.seed(mersenneSeed);
         normal_distribution<double> normal; // default is 0 mean and 1.0 std;
-        double sigma = 5;
+        double sigma = 10;
         
         //Calculation of the first point and Initializationof histogram and log_density
         MFSAexp_asym(spin, system, n_mfsa); 
@@ -146,11 +147,14 @@ int main(int argc, char *argv[]){
                 cout << "Iteration " << n_loop << " : " << setprecision(8) << "f =" << f << endl;
                 int k=0;
                 
-                while(score < crit_score_flat*nbins){
+                while(score < crit_score_flat){
                         
                         k++;
                         if( k%100 == 0){
-                                cout << "(" << n_loop << ',' << k << ")" << ", average = " << average << ", score = " << score << ", sigma = "<< sigma << endl;
+                                cout << "(" << n_loop << ',' << k << ")" << ", average = " << average/nbins
+                                
+                                
+                                << ", score = " << score << ", sigma = "<< sigma << endl;
                                 cout << "Histogram";
                                 Print(histogram,1,nbins);
                                 cout << "Density";
