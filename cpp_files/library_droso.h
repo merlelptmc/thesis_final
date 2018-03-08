@@ -12,8 +12,7 @@
 
 using namespace std;
 void Print(double *mat, int nlin, int ncol );
-void Print(int    *mat, int nlin, int ncol );
-
+void Print(int *mat, int nlin, int ncol );
 void copy(double *in, double *out, int nelem);
 
 // generates a random double number d, uniformly distributed beween 0 and 1 (0 <= d < 1) 
@@ -36,7 +35,7 @@ struct Gene_network{
         Gene_network(int ng, int nm, double *M);
         ~Gene_network();
         void Init(int ng, int nm);
-        void Init_rand(int ng, int nm, int abs_max);
+        void Init_rand(int ng, int nm, double abs_min, double abs_max);
         void Fill(double *M);
         void Print();
         int Check_bounds(double minim, double maxim);

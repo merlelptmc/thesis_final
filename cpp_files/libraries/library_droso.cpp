@@ -54,11 +54,10 @@ void Gene_network::Init(int ng, int nm){
         C = J +nspins*nspins;
 }
 
-void Gene_network::Init_rand(int ng, int nm, int abs_max){
+void Gene_network::Init_rand(int ng, int nm, double abs_min, double abs_max){
         Init(ng,nm);
-        srand(time(0));
         for(int i=0; i<nparam; i++){
-                J[i] = -abs_max + rand() %(2*abs_max);
+                J[i] = abs_min + rand()%10000*(abs_max-abs_min)/10000;
         }
 }
 

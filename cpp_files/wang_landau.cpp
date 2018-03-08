@@ -22,10 +22,12 @@ void update_sigma(double &sigma, double sigma_min, double sigma_max, double Qmax
 
 int main(int argc, char *argv[]){
         
+        srand(time(NULL));
+        
         // Parameters of the Wang Landau
         int nbins= 100;        
-        double crit_fmin = 1e-8;
-        double crit_score_flat =0.4;
+        double crit_fmin = 1e-4;
+        double crit_score_flat =0.6;
         
         // Quantities followed during WL
         int    *histogram   = (int*)   calloc( nbins, sizeof(int));    // set to zero
@@ -34,7 +36,7 @@ int main(int argc, char *argv[]){
         // Quantities used during WL 
         double lnf = 1;
         double f = exp(lnf);
-        double pow_f= 0.8;
+        double pow_f= 0.9;
         double density_new = 0;
         double density_old = 0;
         double Qnew=0;
@@ -47,11 +49,12 @@ int main(int argc, char *argv[]){
         double a = 0;
         
         //Parameters of th studied system
-        int nspins = 1; // number of genes/spins
+        int nspins = 2; // number of genes/spins
         int nsites = 100; // number of nuclei/sites
         double temperature = 1;
         int n_mfsa = 1000; //number of iterations in the MFSA algorithm
         int ngrad=1; // number of maternel gradients if ngrad=2, need to change the graident filling function
+        double Qmax=0.75;
         
         // Boundaries of the parameters
         double min_bd = -10;
@@ -61,7 +64,7 @@ int main(int argc, char *argv[]){
         //Initialization of the system
         Parameters system(nspins, nsites, ngrad, temperature);
         system.gradient.Construct_simple_gradient(nsites);
-        system.network.Init_rand(nspins,ngrad,max_bd);
+        system.network.Init_rand(nspins,ngrad,min_bd, max_bd);
         system.neighbors.construction_1D(nsites);    
         Spins spin(nspins, nsites );
         
@@ -76,12 +79,12 @@ int main(int argc, char *argv[]){
         mt19937_64 generator; // it doesn't matter if I use the 64 or the std::mt19937
         generator.seed(mersenneSeed);
         normal_distribution<double> normal; // default is 0 mean and 1.0 std;
-        double sigma = 10;
+        double sigma = 5;
         
         //Calculation of the first point and Initializationof histogram and log_density
         MFSAexp_asym(spin, system, n_mfsa); 
         Qold = spin.Quality_max();
-        bin_old = floor(Qold*nbins*2);
+        bin_old = floor(Qold*nbins/Qmax);
         histogram[bin_old]++;
         log_density[bin_old] += lnf;
         
@@ -90,7 +93,7 @@ int main(int argc, char *argv[]){
         
         //Filling parameters file and opening the results file
         ostringstream prefix, sig, T, nb;
-        ofstream result, parameters;
+        ofstream result, parameters, walk;
         sig << fixed << setprecision(1) << sigma;
         T << fixed <<  setprecision(1) << temperature;
         nb << setprecision(0) << nbins;
@@ -115,9 +118,9 @@ int main(int argc, char *argv[]){
         <<  now->tm_mday  << endl;
         
         parameters << "date : " << ss.str() << endl << "system:" << endl;
-        parameters << "nspins = " << nspins << endl << "ngradients = " << ngrad << endl; 
-        parameters << "nsites = " << nsites << endl << "temperature = " << temperature << endl << endl;
-        parameters << "wang-landau : " << endl  << "sigma = " << sigma << endl << "nbins = " << nbins << endl << "flatening critera = "<< crit_score_flat  << endl << "ending critera : f-1 < " << crit_fmin << endl <<  "first value of lnf = " << lnf << endl <<  "boundaries = " << min_bd << " "<< max_bd << endl << endl;
+        parameters << "nspins = " << nspins << endl << "ngradients = " << ngrad << endl << "nsites = " << nsites << endl << "temperature = " << temperature << endl;
+        parameters << "boundaries = " << min_bd << " "<< max_bd << endl << endl;
+        parameters << "wang-landau : " << endl  << "sigma = " << sigma << endl << "nbins = " << nbins << endl << "flatening critera = "<< crit_score_flat  << endl << "ending critera : f-1 < " << crit_fmin << endl <<  "first value of lnf = " << lnf << endl << "pow_f = " << pow_f << endl << endl;
         parameters << "calculation : MFSA " << endl << "niterations = " << n_mfsa << endl << endl;
         parameters << "Starting network : " << endl;
         for(int i=0; i<system.network.nparam; i++){
@@ -130,6 +133,7 @@ int main(int argc, char *argv[]){
         cout << "Parameters registered." << endl;
         parameters.close();
         result.open(title + "_histograms.txt");
+        walk.open(title + "_walk.txt");
         
         int n_loop=0;        
         clock_t timer0 = clock();
@@ -147,11 +151,10 @@ int main(int argc, char *argv[]){
                         k++;
                         if( k%100 == 0){
                                 cout << "(" << n_loop << ',' << k << ")" << ", average = " << average << ", score = " << score << ", sigma = "<< sigma << endl;
-                                
-                        cout << "Histogram";
-                        Print(histogram,1,nbins);
-                        cout << "Density";
-                        Print(log_density,1,nbins);
+                                cout << "Histogram";
+                                Print(histogram,1,nbins);
+                                cout << "Density";
+                                Print(log_density,1,nbins);
                         }
                         
                         //Add random values to the actual network parameters
@@ -168,7 +171,7 @@ int main(int argc, char *argv[]){
                         MFSAexp_asym(spin, system_tested, n_mfsa); 
                         Qnew = spin.Quality_max();
                         
-                        bin_new = floor(Qnew*nbins*2);
+                        bin_new = floor(Qnew*nbins/Qmax);
                         proba   = exp(log_density[bin_old]-log_density[bin_new]);
                         
                         if( drand() < proba){
@@ -181,18 +184,23 @@ int main(int argc, char *argv[]){
                         average ++;
                         update_score(score, histogram, nbins, average);
                         
+                        for(int i=0; i< system.network.nparam; i++){
+                                walk << system.network.J[i] << "\t" ;
+                        }
+                        walk << endl;
+                        
                         
                 }
                 
                 
-                cout << "Histogram";
-                Print(histogram,1,nbins);
-                cout << "Density";
-                Print(log_density,1,nbins);
+                //                 cout << "Histogram";
+                //                 Print(histogram,1,nbins);
+                //                 cout << "Density";
+                //                 Print(log_density,1,nbins);
                 
                 //                 f = pow(f,0.8);
                 f=pow(f, pow_f);
-                cout << f << endl;
+                //                 cout << f << endl;
                 lnf = log(f);
                 score   = 0;
                 average = 0;
@@ -211,17 +219,17 @@ int main(int argc, char *argv[]){
                 
                 timer = clock() -timer;
                 elapsed_secs = double(timer) / CLOCKS_PER_SEC ;
-                cout << endl << endl <<  "Elapsed time for this loop is " << elapsed_secs/60 << "min." << endl;
+                cout <<  "Elapsed time for this loop is " << elapsed_secs/60 << "min." << endl;
                 
-                cout << "Density";
-                Print(log_density,1,nbins);
+                //                 cout << "Density";
+                //                 Print(log_density,1,nbins);
                 
-                result << n_loop << "\t" << setprecision(10) << f << "\t" << elapsed_secs << "\t"  ;
+                result << n_loop << "\t" << setprecision(10) << f << "\t" << elapsed_secs << "\t" << k << "\t"   ;
                 for(int i=0; i<nbins; i++){
                         result << log_density[i] << "\t";
                 }
                 result << endl;    
-        
+                
                 
         }                             
         
@@ -229,7 +237,7 @@ int main(int argc, char *argv[]){
         clock_t timer_tot = clock() -timer0;
         elapsed_secs = double(timer_tot) / CLOCKS_PER_SEC ;
         
-        cout << endl << endl <<  "Elapsed time total is " << elapsed_secs/60 << "min." << endl << "End of the program." << endl << endl;
-
+        //         cout << endl << endl <<  "Elapsed time total is " << elapsed_secs/60 << "min." << endl << "End of the program." << endl << endl;
+        
         return 0;
 }
